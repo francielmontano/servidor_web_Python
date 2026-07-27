@@ -16,15 +16,15 @@ try:
         
         client_socket.settimeout(0.2)
         
-        peticion = ""
+        request = ""
         try:
-            peticion = client_socket.recv(1024).decode('utf-8')
+            request = client_socket.recv(1024).decode('utf-8')
         except (socket.timeout, ConnectionResetError):
             pass
 
-        if peticion and len(peticion.strip()) > 0:
-            primera_linea = peticion.split('\n')[0]
-            partes = primera_linea.split(' ')
+        if request and len(request.strip()) > 0:
+            first_part = request.split('\n')[0]
+            partes = first_part.split(' ')
 
             if len(partes) > 1:
                 ruta = partes[1]
@@ -40,34 +40,38 @@ try:
         else:
             archivo = ruta.lstrip("/")
 
-        ruta_archivo = Path("public/" + archivo)
+        file_path = Path("public/" + archivo)
 
         extencions = {
-            ".html": "text/html",
-            ".css": "text/css",
-            ".js": "application/javascript",
+            ".html": "text/html; charset=utf-8",
+            ".css": "text/css; charset=utf-8",
+            ".js": "application/javascript; charset=utf-8",
             ".png": "image/png",
             ".jpg": "image/jpeg",
             ".ico": "image/x-icon"
         }
 
-        if ruta_archivo.exists() and ruta_archivo.is_file():
-            extension = ruta_archivo.suffix
+        content_type = "text/html"
+        status_code = "404 Not Found"
+        content = b"<h1>404 Page Not Found</h1>"
 
-            tipo_contenido = extencions.get(extension,"text/plain")
-            codigo_estado = "200 OK"
-            contenido = ruta_archivo.read_bytes()
+        if file_path.exists() and file_path.is_file():
+            extension = file_path.suffix
+
+            content_type = extencions.get(extension,"text/plain")
+            status_code = "200 OK"
+            content = file_path.read_bytes()
             
 
-        cabecera = (
-            f"HTTP/1.1 {codigo_estado}\r\n"
-            f"Content-Type: {tipo_contenido}; charset=utf-8\r\n"
+        head = (
+            f"HTTP/1.1 {status_code}\r\n"
+            f"Content-Type: {content_type}"
             "Connection: close\r\n"
             "\r\n"
         ).encode("utf-8")
 
         try:
-            client_socket.sendall(cabecera + contenido)
+            client_socket.sendall(head + content)
         except Exception:
             pass
         finally:
