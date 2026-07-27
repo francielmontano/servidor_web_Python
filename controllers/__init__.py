@@ -1,0 +1,1 @@
+from .statics import manage_static
