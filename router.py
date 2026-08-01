@@ -1,11 +1,18 @@
-from controllers import manage_static
+from pathlib import Path 
 
-def route_request(path: str):
 
-    real_path = path.split(" ")[1].lstrip("/")
+class Router():
 
-    status, data_type, content = manage_static(real_path)
+    def __init__(self,public_dir="public"):
 
-    return status, data_type, content
+        self.public_dir = public_dir
+        self.routes = {
+            "GET": {},
+            "POST": {},
+            "PUT": {},
+            "DELETE": {}
+        }
+
+
 
 
