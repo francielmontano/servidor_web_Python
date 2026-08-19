@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import json
 
 class HTTPResponse():
 
@@ -28,11 +29,12 @@ class HTTPResponse():
     def export_bytes(self) -> bytes:
         header = self._formated_header()
         header_bytes = header.encode("utf-8")
-        return header_bytes + self.body_bytes
+        return header_bytes + self.body_bytes 
 
+    @classmethod
+    def json(cls,status_code,body_data):
+        json_data = json.dumps(body_data)
+        json_bytes = json_data.encode("utf-8")
+        content = "application/json; charset=utf-8"
 
-            
-
-   
-
-    
+        return cls(status_code,content,json_bytes)
