@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MiniHTTP Framework - POST Tester</title>
+    <link rel="stylesheet" href="css/post.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Panel Principal Izquierdo -->
+      <main class="main-panel">
+        <header class="app-header">
+          <h1>MiniHTTP Framework</h1>
+          <h2>POST Endpoint Tester</h2>
+          <p>
+            Envía peticiones POST a tu framework y visualiza la respuesta del
+            servidor.
+          </p>
+        </header>
+
+        <form
+          id="tester-form"
+          onsubmit="
+            event.preventDefault();
+            enviarPOST();
+          "
+        >
+          <!-- Selector de Endpoint -->
+          <div class="form-group">
+            <label for="endpoint">Endpoint</label>
+            <input
+              type="text"
+              id="endpoint"
+              placeholder="/usuarios"
+              value="/usuarios"
+            />
+            <span id="endpoint-error" class="error-msg"></span>
+          </div>
+
+          <!-- Selector de Content-Type -->
+          <div class="form-group">
+            <label>Content-Type</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="content-type"
+                  value="text/plain"
+                  checked
+                  onchange="cambiarPlaceholder()"
+                />
+                <span>text/plain</span>
+              </label>
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="content-type"
+                  value="application/json"
+                  onchange="cambiarPlaceholder()"
+                />
+                <span>application/json</span>
+              </label>
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="content-type"
+                  value="application/x-www-form-urlencoded"
+                  onchange="cambiarPlaceholder()"
+                />
+                <span>application/x-www-form-urlencoded</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Área Body -->
+          <div class="form-group">
+            <label for="body-content">Body</label>
+            <textarea id="body-content" placeholder="Hola Mundo"></textarea>
+            <span id="body-warning" class="warning-msg"></span>
+          </div>
+
+          <!-- Botón Enviar -->
+          <button type="submit" id="btn-submit">Enviar POST</button>
+        </form>
+
+        <!-- Resultado -->
+        <section class="result-section">
+          <h3>Resultado</h3>
+          <div class="meta-grid">
+            <div class="meta-item">
+              <span class="meta-label">Status</span>
+              <span id="res-status" class="status-badge">--</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Tiempo</span>
+              <span id="res-time">0 ms</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Content-Type</span>
+              <span id="res-type">--</span>
+            </div>
+          </div>
+          <div class="body-result-container">
+            <label>Body</label>
+            <pre id="res-body">Esperando petición...</pre>
+          </div>
+          <div class="action-buttons">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="limpiarFormulario()"
+            >
+              Limpiar
+            </button>
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="copiarRespuesta()"
+            >
+              Copiar Respuesta
+            </button>
+          </div>
+        </section>
+
+        <!-- Consola -->
+        <section class="console-section">
+          <h3>Consola de Historial</h3>
+          <div id="console-log" class="console-box">
+            <!-- Las líneas de log se agregarán aquí -->
+          </div>
+        </section>
+      </main>
+
+      <!-- Panel Lateral Informativo (HTTP Inspector) -->
+      <aside class="side-panel">
+        <h3>HTTP Request Inspector</h3>
+        <p class="panel-desc">
+          Esto es exactamente lo que el navegador transmite por la red:
+        </p>
+        <pre id="raw-request">
+Modifica el formulario para previsualizar la carga útil...</pre
+        >
+      </aside>
+    </div>
+
+    <script src="js/post.js"></script>
+  </body>
+</html>
