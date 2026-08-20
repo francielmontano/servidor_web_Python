@@ -13,15 +13,17 @@ class HTTPResponse():
     def _formated_header(self):
 
         actual_date = datetime.now(timezone.utc)
+        connection_type = self.headers.get("connection", "close")
         formated_date = actual_date.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
         header = f"HTTP/1.1 {self.status_code}\r\n"
         header += f"Content-Type: {self.content_type}\r\n"
         header += f"Content-Length: {len(self.body_bytes)}\r\n"
-        header += "Connection: close\r\n"
+        header += f"Connection: {connection_type}\r\n"
 
         for key, value in self.headers.items():
-            header += f"{key}: {value}\r\n"
+            if key.lower() != "connection":
+                header += f"{key}: {value}\r\n"
 
         header += "\r\n"
         return header
