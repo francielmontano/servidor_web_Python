@@ -112,7 +112,12 @@ class Router:
                     file_path.suffix, "application/octet-stream"
                 )
 
-                return HTTPResponse("200 OK", content_type, file_path.read_bytes())
+                response = HTTPResponse("200 OK", content_type, file_path.read_bytes())
+                
+                response.headers["Content-Length"] = str(len(file_path.read_bytes()))
+                response.headers["Connection"] = "close"
+                
+                return response
 
         body = f"""
         <!DOCTYPE html>

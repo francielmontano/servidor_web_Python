@@ -1,0 +1,735 @@
+Metadata-Version: 2.4
+Name: framework-api
+Version: 1.0.0
+Summary: Un framework web ligero e inteligente construido desde cero en Python
+Author-email: "Franciel M.A." <francieldemontano89@gmail.com>
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+
+# 🌐 Custom HTTP/1.1 Web Server from Scratch
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/HTTP-1.1-005571?style=for-the-badge&logo=httpie&logoColor=white" alt="HTTP/1.1">
+  <img src="https://img.shields.io/badge/TCP-Sockets-0A66C2?style=for-the-badge&logo=socketdotio&logoColor=white" alt="TCP Sockets">
+  <img src="https://img.shields.io/badge/Dependencies-None-2EA44F?style=for-the-badge" alt="No Dependencies">
+</p>
+
+<p align="center">
+  <strong>A lightweight HTTP/1.1 web server built from scratch using Python's native TCP socket API.</strong>
+</p>
+
+<p align="center">
+  <a href="#-overview">Overview</a> •
+  <a href="#-features">Features</a> •
+  <a href="#-architecture">Architecture</a> •
+  <a href="#-getting-started">Getting Started</a> •
+  <a href="#-future-improvements">Roadmap</a>
+</p>
+
+---
+
+## 📌 Project Overview
+
+This project is a personal implementation of a functional **HTTP/1.1 web server built directly on top of Python's low-level networking primitives**.
+
+The server communicates with clients through raw TCP sockets, manually processes incoming HTTP requests, resolves requested resources from the filesystem, determines the appropriate MIME type, constructs HTTP responses, and transmits the resulting data back to the client.
+
+The implementation deliberately avoids high-level web frameworks such as:
+
+* Flask
+* FastAPI
+* Django
+* Third-party HTTP libraries
+
+The goal is to understand the fundamental mechanisms behind web servers and the relationship between:
+
+```text
+🌐 Client
+   ↓
+📡 HTTP/1.1
+   ↓
+🔌 TCP
+   ↓
+⚙️ OS Socket API
+   ↓
+📂 File System
+   ↓
+📨 HTTP Response
+```
+
+---
+
+## 🟢 Project Status
+
+<p align="center">
+
+|          Component          |     Status     |
+| :-------------------------: | :------------: |
+|      TCP Socket Server      | 🟢 Operational |
+|  HTTP/1.1 Request Handling  | 🟢 Implemented |
+|     Static File Serving     | 🟢 Implemented |
+|     MIME Type Detection     | 🟢 Implemented |
+|     Binary File Support     | 🟢 Implemented |
+| Connection Timeout Handling | 🟢 Implemented |
+|      Graceful Shutdown      | 🟢 Implemented |
+|    Advanced HTTP Features   |   🟡 Planned   |
+
+</p>
+
+> **Current status:** Stable personal project focused on low-level networking and systems programming.
+
+---
+
+# 🚀 Core Features
+
+## 🔌 Low-Level TCP Networking
+
+The server is built directly on Python's standard `socket` module.
+
+It uses:
+
+```python
+socket.AF_INET
+socket.SOCK_STREAM
+```
+
+The server manages the complete TCP socket lifecycle:
+
+```text
+Create Socket
+     ↓
+Configure Socket
+     ↓
+Bind Address
+     ↓
+Listen
+     ↓
+Accept Client
+     ↓
+Receive Data
+     ↓
+Send Response
+     ↓
+Close Connection
+```
+
+This provides direct exposure to the networking layer that high-level web frameworks normally abstract away.
+
+---
+
+## 📡 Manual HTTP/1.1 Request Processing
+
+The server manually receives and parses HTTP requests.
+
+Example:
+
+```http
+GET /index.html HTTP/1.1
+Host: localhost:8080
+Connection: close
+```
+
+The request lifecycle is:
+
+```text
+📥 Raw TCP Data
+      ↓
+🧩 HTTP Parsing
+      ↓
+📍 Extract Request Path
+      ↓
+📂 Resolve File
+      ↓
+🧾 Determine MIME Type
+      ↓
+📨 Build HTTP Response
+      ↓
+📤 Send Bytes to Client
+```
+
+---
+
+## 📂 Static File Serving
+
+The server exposes resources located inside the `public/` document root.
+
+Supported resources include:
+
+| Resource      | Example       |
+| ------------- | ------------- |
+| 🌐 HTML       | `index.html`  |
+| 🎨 CSS        | `styles.css`  |
+| ⚙️ JavaScript | `script.js`   |
+| 🖼️ Images    | `PNG`, `JPEG` |
+| 🔖 Icons      | `ICO`         |
+
+Example request:
+
+```http
+GET /styles.css HTTP/1.1
+```
+
+The server resolves:
+
+```text
+/styles.css
+     ↓
+public/styles.css
+```
+
+and returns the file using the correct HTTP response headers.
+
+---
+
+## 🧾 Dynamic MIME Type Detection
+
+The server maps file extensions to their corresponding MIME types.
+
+| Extension | MIME Type                |
+| :-------: | ------------------------ |
+|  `.html`  | `text/html`              |
+|   `.css`  | `text/css`               |
+|   `.js`   | `application/javascript` |
+|   `.png`  | `image/png`              |
+|   `.jpg`  | `image/jpeg`             |
+|   `.ico`  | `image/x-icon`           |
+
+This allows web browsers to correctly interpret the resources returned by the server.
+
+---
+
+## 🖼️ Binary-Safe Data Transmission
+
+All files are transmitted as raw bytes.
+
+This is critical for resources such as:
+
+* PNG images.
+* JPEG images.
+* Icons.
+* Fonts.
+* Other binary assets.
+
+The response is constructed as:
+
+```text
+HTTP Headers
+     ↓
+UTF-8 Encoded Bytes
+     +
+File Content
+     ↓
+Complete Binary Response
+     ↓
+sendall()
+```
+
+By keeping the response at the byte level, binary resources can be transmitted without text encoding corruption.
+
+---
+
+## ⏱️ Connection Timeout Management
+
+Modern browsers may keep TCP connections open for reuse.
+
+To prevent the server from remaining blocked indefinitely while waiting for additional data, socket timeouts are configured using:
+
+```python
+settimeout()
+```
+
+Timeouts are handled safely through:
+
+```python
+socket.timeout
+```
+
+This allows the server to maintain control over its connection lifecycle and avoid unnecessary blocking behavior.
+
+---
+
+## 🔄 Address Reuse
+
+During development, TCP connections may remain temporarily associated with a port through the `TIME_WAIT` state.
+
+The server uses:
+
+```python
+SO_REUSEADDR
+```
+
+This allows the application to bind to the same address and port again more efficiently after restarting.
+
+---
+
+## 🛑 Graceful Shutdown
+
+The server handles:
+
+```text
+Ctrl + C
+```
+
+through:
+
+```python
+KeyboardInterrupt
+```
+
+This allows the application to close its socket cleanly and release operating system resources.
+
+---
+
+# 🏗️ System Architecture
+
+```text
+┌──────────────────────┐
+│      🌐 Browser      │
+│       Client         │
+└──────────┬───────────┘
+           │
+           │ HTTP/1.1
+           │ over TCP
+           ▼
+┌──────────────────────┐
+│   🔌 TCP Socket      │
+│      Server          │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│   🧩 Request Parser  │
+│                      │
+│  Method              │
+│  Path                │
+│  HTTP Version        │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│   📂 File Resolver   │
+│                      │
+│      public/         │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  🧾 MIME Detection   │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│   📨 HTTP Response   │
+│                      │
+│  Status              │
+│  Headers             │
+│  Body                │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│      🌐 Browser      │
+└──────────────────────┘
+```
+
+---
+
+# 📂 Project Structure
+
+```text
+custom-http-server/
+│
+├── 🐍 servidor.py
+│
+└── 📁 public/
+    ├── 🌐 index.html
+    ├── 🎨 styles.css
+    ├── ⚙️ script.js
+    └── 🖼️ imagen.png
+```
+
+### 🐍 `servidor.py`
+
+The main application entry point.
+
+Responsibilities include:
+
+* Creating and configuring the TCP socket.
+* Binding the server to an address and port.
+* Listening for incoming connections.
+* Accepting client connections.
+* Receiving raw HTTP requests.
+* Parsing request data.
+* Resolving filesystem paths.
+* Determining MIME types.
+* Reading static files.
+* Building HTTP responses.
+* Sending data through the socket.
+* Handling errors and graceful shutdown.
+
+---
+
+### 📁 `public/`
+
+The document root of the server.
+
+All static resources available to clients are served from this directory.
+
+```text
+public/
+├── index.html
+├── styles.css
+├── script.js
+└── imagen.png
+```
+
+---
+
+# 🔄 HTTP Request Lifecycle
+
+```text
+1️⃣ Client opens TCP connection
+              ↓
+2️⃣ Server accepts connection
+              ↓
+3️⃣ Client sends HTTP request
+              ↓
+4️⃣ Server receives raw bytes
+              ↓
+5️⃣ HTTP request is parsed
+              ↓
+6️⃣ Requested path is resolved
+              ↓
+7️⃣ File existence is checked
+              ↓
+8️⃣ MIME type is determined
+              ↓
+9️⃣ HTTP response is constructed
+              ↓
+🔟 Response is transmitted
+              ↓
+🔚 Connection is closed
+```
+
+---
+
+# 📨 HTTP Response Structure
+
+The server generates responses following the standard HTTP structure:
+
+```http
+HTTP/1.1 200 OK
+Content-Type: text/html
+Connection: close
+
+<html>
+    ...
+</html>
+```
+
+Each response contains:
+
+### 🔹 Status Line
+
+```text
+HTTP/1.1 200 OK
+```
+
+### 🔹 Headers
+
+```text
+Content-Type: text/html
+Connection: close
+```
+
+### 🔹 Response Body
+
+The requested file content.
+
+HTTP header lines are terminated using the required CRLF sequence:
+
+```text
+\r\n
+```
+
+---
+
+# 🛠️ Technology Stack
+
+<p align="center">
+
+|       Technology       | Purpose                        |
+| :--------------------: | ------------------------------ |
+|       🐍 Python 3      | Core programming language      |
+|       🔌 `socket`      | TCP networking                 |
+|      📂 `pathlib`      | Filesystem and path management |
+| 🛑 `KeyboardInterrupt` | Graceful shutdown              |
+|    🔄 `SO_REUSEADDR`   | Address reuse                  |
+
+</p>
+
+### 📦 External Dependencies
+
+```text
+None
+```
+
+This project uses only Python's standard library.
+
+---
+
+# 🧠 Technical Concepts Demonstrated
+
+## 🌐 Networking
+
+* TCP/IP fundamentals.
+* IPv4 socket communication.
+* Client-server architecture.
+* Socket lifecycle management.
+* Port binding.
+* Connection handling.
+
+## 📡 HTTP
+
+* HTTP/1.1 request structure.
+* `GET` requests.
+* Status lines.
+* HTTP headers.
+* MIME types.
+* CRLF line termination.
+* HTTP response construction.
+
+## ⚙️ Operating Systems
+
+* Socket resource management.
+* TCP port states.
+* `TIME_WAIT`.
+* File descriptors.
+* Process interruption.
+* Graceful resource cleanup.
+
+## 🐍 Python
+
+* Standard-library networking.
+* Binary file I/O.
+* Exception handling.
+* Filesystem abstraction with `pathlib`.
+* Low-level server architecture.
+
+---
+
+# ⚙️ Getting Started
+
+## 📋 Requirements
+
+* Python 3.x
+* A Unix-like operating system or Windows with Python installed.
+
+No external dependencies are required.
+
+---
+
+## 1️⃣ Clone the Repository
+
+```bash
+git clone <repository-url>
+cd custom-http-server
+```
+
+---
+
+## 2️⃣ Start the Server
+
+```bash
+python servidor.py
+```
+
+The server will be available at:
+
+```text
+http://localhost:8080
+```
+
+---
+
+## 3️⃣ Open the Application
+
+Navigate to:
+
+```text
+http://localhost:8080
+```
+
+The server will serve resources from:
+
+```text
+public/
+```
+
+---
+
+## 4️⃣ Stop the Server
+
+Press:
+
+```text
+Ctrl + C
+```
+
+The server will handle the interruption and close its resources safely.
+
+---
+
+# 🧪 Example Request Flow
+
+When a client requests:
+
+```http
+GET /index.html HTTP/1.1
+```
+
+The server performs:
+
+```text
+/index.html
+     ↓
+📂 public/index.html
+     ↓
+🔍 File existence check
+     ↓
+🧾 MIME type detection
+     ↓
+📖 Read file as bytes
+     ↓
+📨 Build HTTP response
+     ↓
+📡 Send through TCP
+     ↓
+🌐 Browser renders content
+```
+
+---
+
+# 📈 Roadmap
+
+The current implementation focuses on the fundamental mechanics of HTTP and TCP communication.
+
+Potential future improvements include:
+
+* [ ] Support for additional HTTP methods.
+* [ ] More complete HTTP request parsing.
+* [ ] Improved HTTP status code handling.
+* [ ] Custom `404 Not Found` responses.
+* [ ] Path traversal protection.
+* [ ] Configurable host and port.
+* [ ] `Content-Length` support.
+* [ ] Persistent HTTP connections.
+* [ ] Concurrent client handling.
+* [ ] Thread-based request processing.
+* [ ] Structured logging.
+* [ ] Unit and integration testing.
+* [ ] Configuration management.
+
+---
+
+# 🎯 Project Goals
+
+This project is not intended to replace production-grade web servers.
+
+Its purpose is to understand what happens beneath high-level frameworks.
+
+Instead of:
+
+```text
+🌐 Browser
+    ↓
+⚡ Framework
+    ↓
+🖥️ HTTP Server
+```
+
+This project explores:
+
+```text
+🌐 Browser
+    ↓
+📡 TCP Connection
+    ↓
+🔌 Socket
+    ↓
+📨 Raw HTTP Request
+    ↓
+🧩 Manual Parsing
+    ↓
+📂 Filesystem
+    ↓
+📨 HTTP Response
+    ↓
+📡 TCP Transmission
+```
+
+---
+
+# 📚 Key Takeaways
+
+This project provided practical experience with the relationship between:
+
+```text
+┌───────────────────────┐
+│   Application Layer   │
+│       HTTP/1.1        │
+└───────────┬───────────┘
+            ↓
+┌───────────────────────┐
+│   Transport Layer     │
+│         TCP           │
+└───────────┬───────────┘
+            ↓
+┌───────────────────────┐
+│   Operating System    │
+│       Sockets         │
+└───────────┬───────────┘
+            ↓
+┌───────────────────────┐
+│      File System      │
+└───────────────────────┘
+```
+
+The project demonstrates how frameworks such as Flask, FastAPI, and Django abstract many of the low-level operations involved in receiving, processing, and responding to network requests.
+
+---
+
+# 👨‍💻 Author
+
+## Franciel Montaño Aracen
+
+Personal project focused on:
+
+* 🐍 Python systems programming.
+* 🌐 Low-level networking.
+* 📡 HTTP protocol fundamentals.
+* 🔌 TCP socket communication.
+* ⚙️ Operating system interactions.
+* 🏗️ Software architecture.
+
+---
+
+<div align="center">
+
+### 🌐 Build from the protocol up.
+
+**Don't just use the web. Understand what happens underneath it.**
+
+⭐ If you find this project interesting, feel free to explore the source code.
+
+</div>
+
+---
+
+## 📄 License
+
+This project is intended for educational and personal development purposes.

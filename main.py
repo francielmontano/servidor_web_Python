@@ -2,7 +2,7 @@ from pathlib import Path
 import json
 from datetime import datetime
 
-from core import Router, HTTPServer, HTTPResponse
+from src.core import Router, HTTPServer, HTTPResponse
 
 BASE_DIR = Path(__file__).resolve().parent
 PUBLIC_DIR = BASE_DIR / "public"
