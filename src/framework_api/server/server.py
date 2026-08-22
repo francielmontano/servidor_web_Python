@@ -1,5 +1,5 @@
-from framework_api.request import Request
-from framework_api.response import HTTPResponse
+from http import Request
+from http import HTTPResponse
 import threading, socket
 import traceback
 
