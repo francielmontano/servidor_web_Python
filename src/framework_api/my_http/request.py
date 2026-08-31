@@ -71,12 +71,3 @@ class Request:
                 else:
                     dict_query[item] = "true"
         return dict_query
-
-
-if __name__ == "__main__":
-    plain = """POST /productos/?notificar=true&almacen=centro HTTP/1.1\r\nHost: ://tienda.com\r\nContent-Type: application/json\r\nContent-Length: 95\r\nUser-Agent: Mozilla/5.0\r\nAccept: */*\r\n\r\n{\n  "nombre": "Teclado Mecánico RGB",\n  "precio": 79.99,\n  "stock": 45,\n  "categoria": "perifericos"\n}"""
-
-    request = Request(plain)
-
-    print(request.query)
-    print(request.path)

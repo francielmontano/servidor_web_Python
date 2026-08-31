@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from .http.response import HTTPResponse
+from .my_http.response import HTTPResponse
 from types import NoneType
 
 

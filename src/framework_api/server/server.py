@@ -1,15 +1,16 @@
-from http import Request
-from http import HTTPResponse
-import threading, socket
-import traceback
-
+from ..my_http import HTTPResponse, Request
+from ..my_logging.loging import Logger
+import threading, socket, traceback
 
 class HTTPServer:
+    
+    
 
     def __init__(self, router, host="127.0.0.1", port=8080):
         self.router = router
         self.host = host
         self.port = port
+        self.write_log = Logger(20,"HTTPServer")
 
     def start(self):
 
@@ -21,9 +22,8 @@ class HTTPServer:
         while True:
             try:
                 client_socket, client_address = server.accept()
-                print(
-                    f"[CONEXIÓN] Cliente desde: {client_address[0]}:{client_address[1]}"
-                )
+                self.write_log.info(f"[CONEXIÓN] Cliente desde: {client_address[0]}:{client_address[1]}")
+                
                 hilo = threading.Thread(
                     target=self.atender_cliente, args=(client_socket,)
                 )
@@ -38,9 +38,9 @@ class HTTPServer:
         try:
             while True:
                 try:
-                    print("Esperando datos...")
+                    self.write_log.info("[CONEXIÓN] Esperando datos del cliente...")
                     bytes_recibidos = socket_client.recv(4096)
-                    print("Datos recibidos")
+                    self.write_log.info("[CONEXIÓN] Datos recibidos.")
 
                     if not bytes_recibidos:
                         break
@@ -59,7 +59,7 @@ class HTTPServer:
                     socket_client.sendall(response.export_bytes())
 
                 except socket.timeout:
-                    print("[TIMEOUT] Cliente inactivo.")
+                    self.write_log.warning("[TIMEOUT] Cliente inactivo.")
                     break
 
                 except Exception:
@@ -79,5 +79,5 @@ class HTTPServer:
                     break
 
         finally:
-            print("[CONEXIÓN] Cerrando socket del cliente de manera definitiva.")
+            self.write_log.info("[CONEXIÓN] Cerrando conexión con el cliente.")
             socket_client.close()

@@ -18,5 +18,5 @@ classifiers = [
 ]
 dependencies = []
 
-# Eliminamos la sección [tool.setuptools.packages.find] para evitar conflictos
-
+[tool.setuptools.packages.find]
+where = ["src"]

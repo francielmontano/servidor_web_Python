@@ -1,13 +1,14 @@
 import re
 import inspect
-from http import HTTPResponse
-from ..f import Request_type
-
+from ..factory import Request_type
+from ..my_http import HTTPResponse
+from ..my_logging.loging import Logger
 
 class Router:
 
     def __init__(self, public_dir):
         self.public_dir = public_dir
+        self.write_log = Logger(20,"Router")
         self.routes = {"GET": [], "POST": [], "PUT": [], "DELETE": []}
         self.extensions = {
             ".html": "text/html; charset=utf-8",
@@ -84,8 +85,8 @@ class Router:
         # Buscar rutas registradas
         if method in self.routes:
 
-            print("Método recibido:", method)
-            print("Rutas registradas:")
+            self.write_log.info("Rutas registradas:")
+            self.write_log.info(f"{method}")
             
 
             for regex_pattern, func in self.routes[method]:
